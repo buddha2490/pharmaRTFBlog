@@ -1,0 +1,49 @@
+---
+title: "Building CDISC TFLs in R with {pharmaRTF} and {huxtable}: a practical Table 1"
+author: "Brian Carter"
+date: "2025-08-12"
+format:
+  html:
+    toc: true
+    code-fold: show
+    df-print: paged
+  pdf: default
+execute:
+  echo: true
+  warning: false
+  message: false
+editor: visual
+---
+
+## Introduction
+
+Tables, Figures, and Listings (TFLs) are the backbone of CDISC statistical reporting. In many organizations, SAS has been the primary tool, with teams leaning heavily on `PROC REPORT` and `PROC TEMPLATE`. The initial learning curve and the tendency to “lock into” one table design can make moving to R feel daunting. The goal of this post is to show a simple, reproducible path in R that you can *copy-paste and extend*: we’ll build a classic **Table 1** (baseline demographics) from an ARD (Analysis Results Data) style dataset using **{huxtable}** for table styling and **{pharmaRTF}** for regulator-friendly RTF output.
+
+We’ll keep the pattern minimal and reusable: shape the ARD to a wide format, print a readable table for HTML/PDF, then export the same table to RTF with proper titles, footnotes, and pagination.
+
+> What you’ll learn
+>
+> - How ARD-shaped results roll up into TFLs  
+> - A “starter” Table 1 you can replicate across studies  
+> - Practical {huxtable} tricks: multi-row headers, cell merges, alignment, and borders  
+> - How {pharmaRTF} adds titles, footnotes, and document properties for submission-ready RTF
+
+## Data: the ARD idea
+
+ARD (Analysis Results Data) standardizes computed statistics (counts, percentages, means, SDs, etc.) into a tidy structure, so TFLs can be automated from a consistent input. Many teams now generate ARDs directly in R; a popular option in the pharmaverse is the `{cards}` family, which provides constructors and utilities for ARD objects (and extensions in `{cardx}` for more analyses). We’ll start from a prepared ARD-like file, `data.xlsx`, and transform it into a Table 1 input.
+
+## Setup
+
+```{r}
+#| label: setup
+# Packages
+library(dplyr)
+library(tidyr)
+library(glue)
+library(readxl)
+library(huxtable)
+library(pharmaRTF)
+
+# Knitr / huxtable defaults for clean output in the blog
+options(huxtable.knit_print_df = FALSE)
+```
