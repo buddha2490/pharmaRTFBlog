@@ -1,0 +1,12 @@
+name: building_cdisc_tfls_with_the_pharmaverse
+title: Building CDISC TFLs with the Pharmaverse
+username: brian.carter@procogia.com
+account: brian.carter@procogia.com
+server: connect.procogia.com
+hostUrl: https://connect.procogia.com/__api__
+appId: 276
+bundleId: 277475
+url: https://connect.procogia.com:443/content/1d7ee950-01d3-4d05-8a49-67fe1e98fe2f/
+version: 1
+asMultiple: FALSE
+asStatic: TRUE

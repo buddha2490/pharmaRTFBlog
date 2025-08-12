@@ -9,7 +9,7 @@
 <meta name="author" content="Brian Carter">
 <meta name="dcterms.date" content="2025-08-12">
 
-<title>Building CDISC TFLs in R with {pharmaRTF} and {huxtable}: a practical Table 1</title>
+<title>Building CDISC TFLs in R with pharmaRTF and huxtable: a practical Table 1</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -69,8 +69,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="document_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="document_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="document_files/libs/bootstrap/bootstrap-c0367b04c37547644fece4185067e4a7.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
-<link href="document_files/libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet">
-<script src="document_files/libs/pagedtable-1.1/js/pagedtable.js"></script>
 
 
 </head>
@@ -88,15 +86,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#building-your-first-huxtable" id="toc-building-your-first-huxtable" class="nav-link" data-scroll-target="#building-your-first-huxtable">Building your first <code>huxtable</code></a></li>
   <li><a href="#headers-merges-font-sizes-justification-styling" id="toc-headers-merges-font-sizes-justification-styling" class="nav-link" data-scroll-target="#headers-merges-font-sizes-justification-styling">Headers, merges, font sizes, justification &amp; styling</a></li>
   <li><a href="#final-export-to-rtf-with-pharmartf" id="toc-final-export-to-rtf-with-pharmartf" class="nav-link" data-scroll-target="#final-export-to-rtf-with-pharmartf">Final export to RTF (with <code>pharmaRTF</code>)</a></li>
-  <li><a href="#section" id="toc-section" class="nav-link" data-scroll-target="#section"></a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
+  <li><a href="#conclusion-1" id="toc-conclusion-1" class="nav-link" data-scroll-target="#conclusion-1">Conclusion</a></li>
   </ul>
-<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="document.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
+</nav>
 </div>
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Building CDISC TFLs in R with {pharmaRTF} and {huxtable}: a practical Table 1</h1>
+<h1 class="title">Building CDISC TFLs in R with <code>pharmaRTF</code> and <code>huxtable</code>: a practical Table 1</h1>
 </div>
 
 
@@ -127,7 +126,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
-<p>Tables, Figures, and Listings (TFLs) are the backbone of CDISC statistical reporting. In many organizations, SAS has been the primary tool, with teams leaning heavily on <code>PROC REPORT</code> and <code>PROC TEMPLATE</code>. The initial learning curve and the tendency to “lock into” one table design can make moving to R feel daunting. The goal of this post is to show a simple, reproducible path in R that you can <em>copy-paste and extend</em>: we’ll build a classic <strong>Table 1</strong> (baseline demographics) from an ARD (Analysis Results Data) style dataset using <strong><code>huxtable</code></strong> for table styling and <strong><code>pharmaRTF</code></strong> for regulator-friendly RTF output.</p>
+<p>Tables, Figures, and Listings (TFLs) are the backbone of <a href="https://www.cdisc.org/standards/foundational/analysis-results-standard">CDISC</a> statistical reporting. In many organizations, SAS has been the primary tool, with teams leaning heavily on <code>PROC REPORT</code> and <code>PROC TEMPLATE</code>. The initial learning curve and the tendency to “lock into” one table design can make moving to R feel daunting. The goal of this post is to show a simple, reproducible path in R that you can <em>copy-paste and extend</em>: we’ll build a classic <strong>Table 1</strong> (baseline demographics) from an ARD (Analysis Results Data) style dataset using <strong><code>huxtable</code></strong> for table styling and <strong><code>pharmaRTF</code></strong> for regulator-friendly RTF output.</p>
 <p>We’ll keep the pattern minimal and reusable: shape the ARD to a wide format, print a readable table for HTML/PDF, then export the same table to RTF with proper titles, footnotes, and pagination. The data used for this post are <a href="https://github.com/buddha2490/pharmaRTFBlog.git">available online for download.</a></p>
 <blockquote class="blockquote">
 <p>What you’ll learn</p>
@@ -144,15 +143,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="data-the-ard-idea" class="level2">
 <h2 class="anchored" data-anchor-id="data-the-ard-idea">Data: the ARD idea</h2>
-<p>ARD (Analysis Results Data) standardizes computed statistics (counts, percentages, means, SDs, etc.) into a tidy structure, so TFLs can be automated from a consistent input. Many teams now generate ARDs directly in R; a popular option in the pharmaverse is the <code>cards</code> package, which provides constructors and utilities for ARD objects (and extensions in <code>cardx</code> for more analyses). We’ll start from a prepared ARD-like file, <code>data.xlsx</code>, and restructure it into a Table 1 input using following code.</p>
+<p><a href="https://www.cdisc.org/standards/foundational/analysis-results-standard">ARD (Analysis Results Data)</a> standardizes computed statistics (counts, percentages, means, SDs, etc.) into a tidy structure, so TFLs can be automated from a consistent input. Many teams now generate ARDs directly in R; a popular option in the <a href="https://pharmaverse.org">pharmaverse</a> is the <code>cards</code> package, which provides constructors and utilities for ARD objects (and extensions in <code>cardx</code> for more analyses). We’ll start from a prepared ARD-like file, <code>data.xlsx</code>, and restructure it into a Table 1 input using following code.</p>
 <div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> readxl<span class="sc">::</span><span class="fu">read_excel</span>(<span class="st">"data.xlsx"</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>table1 <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(program <span class="sc">==</span> <span class="st">"program1.R"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(variable_context <span class="sc">==</span> <span class="st">"char"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(variable_context <span class="sc">==</span> <span class="st">"char"</span>) <span class="sc">%&gt;%</span> <span class="co"># read in the categorical data first</span></span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>stat_label) <span class="sc">%&gt;%</span></span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_from =</span> stat_name,</span>
@@ -166,7 +163,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(</span>
 <span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    df <span class="sc">%&gt;%</span></span>
 <span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(program <span class="sc">==</span> <span class="st">"program1.R"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(variable_context <span class="sc">==</span> <span class="st">"num"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(variable_context <span class="sc">==</span> <span class="st">"num"</span>) <span class="sc">%&gt;%</span> <span class="co"># next we do the continuous variables</span></span>
 <span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>      <span class="fu">select</span>(<span class="sc">-</span>stat_name)  <span class="sc">%&gt;%</span></span>
 <span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>      <span class="fu">group_by</span>(variable_label, group_level) <span class="sc">%&gt;%</span></span>
 <span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">variable_label =</span> <span class="fu">ifelse</span>(<span class="fu">row_number</span>() <span class="sc">!=</span> <span class="dv">1</span>, <span class="st">""</span>, variable_label)) <span class="sc">%&gt;%</span></span>
@@ -176,8 +173,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
 <span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
 <span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(group_level, variable_label, variable_level, stat_label, stat) <span class="sc">%&gt;%</span></span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">group_level =</span> <span class="fu">factor</span>(group_level, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"All Patients"</span>, <span class="st">"Placebo"</span>, <span class="st">"Treatment"</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">group_level =</span> <span class="fu">factor</span>(group_level, </span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>                              <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"All Patients"</span>, <span class="st">"Placebo"</span>, <span class="st">"Treatment"</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="building-your-first-huxtable" class="level2">
@@ -185,8 +182,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>The <code>huxtable</code> package creates customizable, publication-quality tables in R with intuitive functions for styling, alignment, cell merging, and formatting. Paired with <code>pharmaRTF</code>, it enables seamless formatting of TFLs for regulatory submission, bridging statistical output and polished RTF tables, making R a viable SAS PROC REPORT alternative.</p>
 <p>This minimal version is already sufficient for many tables: feed it a similarly shaped ARD and you’ll get consistent output. Next, let’s layer in the styling tricks you often need in clinical reporting.</p>
 <div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>ht <span class="ot">&lt;-</span> table1 <span class="sc">%&gt;%</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_from =</span> group_level,</span>
@@ -211,7 +206,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">set_align</span>(, n_cols, <span class="st">"left"</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">set_align</span>(, group_cols, <span class="st">"center"</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">set_width</span>(<span class="dv">1</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output-display">
 <table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; width: 100%; margin-left: auto; margin-right: auto;  " id="tab:minimal-table">
 <colgroup><col><col><col><col><col><col></colgroup><tbody><tr>
@@ -246,8 +240,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>The minimal example is nice enough, but ideally we would want to format the table to look a little more professional. Some of these steps are accomplished through the <code>huxtable</code> package and other wait until rendering with <code>pharmaRTF</code>.</p>
 <p>Let’s start by adding a header row over the treatment groups. We will do this by creating a new <code>huxtable</code> of the header and then adding it to the main table. When we compile the final table with <code>pharmaRTF</code> this header row will be carried over for each page.</p>
 <div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a header huxtable</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>head_ht <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="st">""</span>, <span class="dv">3</span>), <span class="fu">rep</span>(<span class="st">"Treatment Arm"</span>, <span class="dv">3</span>))</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -259,7 +251,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">merge_cells</span>(<span class="at">row =</span> <span class="dv">1</span>, <span class="at">col =</span> group_cols) </span>
 <span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>ht</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output-display">
 <table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  ">
 <colgroup><col><col><col><col><col><col></colgroup><tbody><tr>
@@ -292,8 +283,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>Now we can add some styling to the table. <code>huxtable</code> provides a standardized syntax for styling tables: <code>set_feature(ht, row, col, value)</code> where <code>row</code> and <code>col</code> can be single values or ranges, and <code>value</code> is the desired style (e.g., bold, font size, alignment). Using this syntax, we can add some horizontal style lines to our table, change the fonts, and set the alignment of the values.</p>
 <div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Alignment</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>ht <span class="ot">&lt;-</span> ht <span class="sc">%&gt;%</span></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  huxtable<span class="sc">::</span><span class="fu">set_top_padding</span>(<span class="fl">0.2</span>) <span class="sc">%&gt;%</span></span>
@@ -319,7 +308,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>ht</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 <div class="cell-output-display">
 <table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  ">
 <colgroup><col><col><col><col><col><col></colgroup><tbody><tr>
@@ -355,8 +343,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="final-export-to-rtf-with-pharmartf">Final export to RTF (with <code>pharmaRTF</code>)</h2>
 <p>For clinical submissions, titles and footnotes belong in the RTF header/footer areas, paginate correctly, and repeat appropriately—this is where <code>pharmaRTF</code> shines. It consumes your <code>huxtable</code> and attaches header/footer lines, page size, orientation, and more.</p>
 <div class="cell">
-<details open="" class="code-fold">
-<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>title1 <span class="ot">=</span> <span class="st">"Table 1. Baseline demographics and characteristics"</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>title2 <span class="ot">=</span> <span class="st">"Sample population"</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>footnote1 <span class="ot">=</span> <span class="st">"Brought to you by ProCogia and the Pharmaverse"</span></span>
@@ -373,12 +359,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_footnotes</span>(<span class="fu">hf_line</span>(footnote1, <span class="at">align =</span> <span class="st">"left"</span>,</span>
 <span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>                        <span class="at">font =</span> <span class="st">"arial"</span>, <span class="at">font_size =</span> <span class="dv">10</span>)) <span class="sc">%&gt;%</span></span>
 <span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  pharmaRTF<span class="sc">::</span><span class="fu">write_rtf</span>(<span class="st">"table1.rtf"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
 </div>
 <p><img src="table1.png" class="img-fluid"></p>
 </section>
-<section id="section" class="level2">
-<h2 class="anchored" data-anchor-id="section"></h2>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+</section>
+<section id="conclusion-1" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion-1">Conclusion</h2>
+<p>What we built here is more than a single table—it’s a repeatable blueprint. Starting from ARD-shaped results, we reshaped data with familiar <a href="https://www.tidyverse.org">tidy</a> verbs, used <code>huxtable</code> to express clean, readable structure, and relied on <code>pharmaRTF</code> to deliver regulator-friendly output. The same pattern scales from a baseline Table 1 to an entire TFL catalog with consistent headers, titles, footnotes, and pagination—without locking your team into a single rigid template.</p>
+<p>The exciting part is what comes next. The <a href="https://pharmaverse.org">pharmaverse</a> is moving fast: standardized data contracts (like ARD), composable table builders, and interoperable tooling make it easy to automate the tedious parts and focus on the science. Open-source analytics gives you transparency, version control, and CI-friendly validation—so tables are not just beautiful; they’re reproducible, reviewable, and auditable. As your organization leans into this ecosystem, you’re not just replicating what you did in SAS, you’re unlocking a modern workflow that evolves with your needs.</p>
+<p>If you’re considering the transition, start small: pilot a few priority TFLs, formalize your ARD outputs, and harden a minimal set of table styles. From there, expand coverage, add study-level metadata, and fold the pipeline into your quality system. Our team of statistical programmers at <strong>ProCogia</strong> has helped organizations follow exactly this path—from assessment and planning, to template design and validation, to training and rollout. We’d be happy to partner with you to make your move to open-source tools smooth, sustainable, and fast.</p>
 </section>
 
 </main>

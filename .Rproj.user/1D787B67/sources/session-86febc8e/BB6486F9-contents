@@ -1,9 +1,9 @@
 ---
-title: "Building CDISC TFLs in R with {pharmaRTF} and {huxtable}: a practical Table 1"
+title: "Building CDISC TFLs in R with `pharmaRTF` and `huxtable`: a practical Table 1"
 author: "Brian Carter"
 date: "2025-08-12"
 format:
-  docx:
+  html:
     toc: true
 execute:
   echo: true
@@ -31,7 +31,7 @@ options(huxtable.knit_print_df = FALSE)
 
 ## Introduction
 
-Tables, Figures, and Listings (TFLs) are the backbone of CDISC statistical reporting. In many organizations, SAS has been the primary tool, with teams leaning heavily on `PROC REPORT` and `PROC TEMPLATE`. The initial learning curve and the tendency to “lock into” one table design can make moving to R feel daunting. The goal of this post is to show a simple, reproducible path in R that you can *copy-paste and extend*: we’ll build a classic **Table 1** (baseline demographics) from an ARD (Analysis Results Data) style dataset using **`huxtable`** for table styling and **`pharmaRTF`** for regulator-friendly RTF output.
+Tables, Figures, and Listings (TFLs) are the backbone of [CDISC](https://www.cdisc.org/standards/foundational/analysis-results-standard) statistical reporting. In many organizations, SAS has been the primary tool, with teams leaning heavily on `PROC REPORT` and `PROC TEMPLATE`. The initial learning curve and the tendency to “lock into” one table design can make moving to R feel daunting. The goal of this post is to show a simple, reproducible path in R that you can *copy-paste and extend*: we’ll build a classic **Table 1** (baseline demographics) from an ARD (Analysis Results Data) style dataset using **`huxtable`** for table styling and **`pharmaRTF`** for regulator-friendly RTF output.
 
 We’ll keep the pattern minimal and reusable: shape the ARD to a wide format, print a readable table for HTML/PDF, then export the same table to RTF with proper titles, footnotes, and pagination. The data used for this post are [available online for download.](https://github.com/buddha2490/pharmaRTFBlog.git)
 
@@ -44,14 +44,14 @@ We’ll keep the pattern minimal and reusable: shape the ARD to a wide format, p
 
 ## Data: the ARD idea
 
-ARD (Analysis Results Data) standardizes computed statistics (counts, percentages, means, SDs, etc.) into a tidy structure, so TFLs can be automated from a consistent input. Many teams now generate ARDs directly in R; a popular option in the pharmaverse is the `cards` package, which provides constructors and utilities for ARD objects (and extensions in `cardx` for more analyses). We’ll start from a prepared ARD-like file, `data.xlsx`, and restructure it into a Table 1 input using following code.
+[ARD (Analysis Results Data)](https://www.cdisc.org/standards/foundational/analysis-results-standard) standardizes computed statistics (counts, percentages, means, SDs, etc.) into a tidy structure, so TFLs can be automated from a consistent input. Many teams now generate ARDs directly in R; a popular option in the [pharmaverse](https://pharmaverse.org) is the `cards` package, which provides constructors and utilities for ARD objects (and extensions in `cardx` for more analyses). We’ll start from a prepared ARD-like file, `data.xlsx`, and restructure it into a Table 1 input using following code.
 
 ```{r}
 df <- readxl::read_excel("data.xlsx")
 
 table1 <- df %>%
   filter(program == "program1.R") %>%
-  filter(variable_context == "char") %>%
+  filter(variable_context == "char") %>% # read in the categorical data first
   select(-stat_label) %>%
   pivot_wider(
     names_from = stat_name,
@@ -65,7 +65,7 @@ table1 <- df %>%
   bind_rows(
     df %>%
       filter(program == "program1.R") %>%
-      filter(variable_context == "num") %>%
+      filter(variable_context == "num") %>% # next we do the continuous variables
       select(-stat_name)  %>%
       group_by(variable_label, group_level) %>%
       mutate(variable_label = ifelse(row_number() != 1, "", variable_label)) %>%
@@ -75,7 +75,8 @@ table1 <- df %>%
   ungroup()
   ) %>%
   select(group_level, variable_label, variable_level, stat_label, stat) %>%
-  mutate(group_level = factor(group_level, levels = c("All Patients", "Placebo", "Treatment")))
+  mutate(group_level = factor(group_level, 
+                              levels = c("All Patients", "Placebo", "Treatment")))
 ```
 
 ## Building your first `huxtable`
@@ -199,9 +200,9 @@ ht %>%
 
 ## Conclusion
 
-What we built here is more than a single table—it’s a repeatable blueprint. Starting from ARD-shaped results, we reshaped data with familiar tidy verbs, used `huxtable` to express clean, readable structure, and relied on `pharmaRTF` to deliver regulator-friendly output. The same pattern scales from a baseline Table 1 to an entire TFL catalog with consistent headers, titles, footnotes, and pagination—without locking your team into a single rigid template.
+What we built here is more than a single table—it’s a repeatable blueprint. Starting from ARD-shaped results, we reshaped data with familiar [tidy](https://www.tidyverse.org) verbs, used `huxtable` to express clean, readable structure, and relied on `pharmaRTF` to deliver regulator-friendly output. The same pattern scales from a baseline Table 1 to an entire TFL catalog with consistent headers, titles, footnotes, and pagination—without locking your team into a single rigid template.
 
-The exciting part is what comes next. The **pharmaverse** is moving fast: standardized data contracts (like ARD), composable table builders, and interoperable tooling make it easy to automate the tedious parts and focus on the science. Open-source analytics gives you transparency, version control, and CI-friendly validation—so tables are not just beautiful; they’re reproducible, reviewable, and auditable. As your organization leans into this ecosystem, you’re not just replicating what you did in SAS—you’re unlocking a modern workflow that evolves with your needs.
+The exciting part is what comes next. The [pharmaverse](https://pharmaverse.org) is moving fast: standardized data contracts (like ARD), composable table builders, and interoperable tooling make it easy to automate the tedious parts and focus on the science. Open-source analytics gives you transparency, version control, and CI-friendly validation—so tables are not just beautiful; they’re reproducible, reviewable, and auditable. As your organization leans into this ecosystem, you’re not just replicating what you did in SAS, you’re unlocking a modern workflow that evolves with your needs.
 
 If you’re considering the transition, start small: pilot a few priority TFLs, formalize your ARD outputs, and harden a minimal set of table styles. From there, expand coverage, add study-level metadata, and fold the pipeline into your quality system. Our team of statistical programmers at **ProCogia** has helped organizations follow exactly this path—from assessment and planning, to template design and validation, to training and rollout. We’d be happy to partner with you to make your move to open-source tools smooth, sustainable, and fast.
 
