@@ -1,0 +1,15 @@
+
+
+procogiaPharmaRTF <- function(dat)
+  
+n_cols      <- ncol(ht) # total number of columns in the table
+group_cols  <- setdiff(seq_len(n_cols), 1:3) # isolate the groups
+
+
+ht %>%
+  huxtable::as_hux() %>%
+  huxtable::set_bold(1, everywhere, TRUE) %>%
+  huxtable::set_align(, n_cols, "left") %>%
+  huxtable::set_align(, group_cols, "center") %>%
+  huxtable::set_width(1) 
+  

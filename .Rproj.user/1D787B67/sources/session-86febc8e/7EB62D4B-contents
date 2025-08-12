@@ -1,0 +1,77 @@
+---
+title: "pharmaRTF Prompts"
+author: "Brian Carter"
+format: docx
+editor: visual
+---
+
+## Overview
+
+I need to write a technical blog post describing the `pharmaRTF` and `huxtable` packages for TFL generation in CDISC statistical reporting. The audience are administrators that may be interested in migrating to open source from expensive statistical tools like SAS.
+
+## Data
+
+Description of the data: Since TFL generation tends to be a labor/time intensive process, it helps to standardizing statistical output to automate table generation. This structure is referred to as the Analysis Results Data (ARD) model. Statistical output can be standardized into this model and can be used to create tables and figures. Standardizing our statistics into this model allows us to write functions to automate the tedium of TFL reports. There are many packages available for creating these ARD models, I recommend the `cards` package from the pharmaverse (include link <https://github.com/insightsengineering/cards>).
+
+The data are provided in data.xlsx. Import the data and prepare the table1 input using the following code:
+
+```{r}
+library(magrittr)
+library(dplyr)
+library(tidyr)
+df <- readxl::read_excel("data.xlsx")
+
+table1 <- df %>%
+  filter(program == "program1.R") %>%
+  filter(variable_context == "char") %>%
+  select(-stat_label) %>%
+  pivot_wider(
+    names_from = stat_name,
+    values_from = stat
+  ) %>%
+  mutate(stat = glue::glue("{p} ({n})")) %>%
+  group_by(variable_label) %>%
+  mutate(variable_label = ifelse(row_number() != 1, "", variable_label)) %>%
+  ungroup() %>%
+  mutate(stat_name = "N (%)") %>%
+  bind_rows(
+    df %>%
+      filter(program == "program1.R") %>%
+      filter(variable_context == "num") %>%
+      select(-stat_label)  %>%
+      group_by(variable_label) %>%
+      mutate(variable_label = ifelse(row_number() != 1, "", variable_label)) %>%
+      ungroup() 
+  ) %>%
+  select(group_level, variable_label, variable_level, stat)
+```
+
+## Blog outline
+
+Please follow this outline to write the blog post using the data above.
+
+1.  Introduction
+    -   Briefly introduce the importance of TFL generation in CDISC statistical reporting.
+    -   Mention the challenges with traditional tools like SAS and the benefits of open-source alternatives.
+    -   SAS users typically use PROC REPORT and PROC TEMPLATE to create tables, it is my experience that programmers often struggle with their initial experience with these PROCs and settle on a single design for all their tables going forward. Having to redesign this TFL code in R is a substantial barrier to transitioning. I want to provide the reader with a simple table output they can just replicate.
+    -   Goal is to introduce one of several TFL tools available in the pharmaverse and provide a simple reusable function that readers can expand for their own purposes.
+2.  Data
+    -   describe ARD data
+    -   explain how the data is structured and how it can be used to generate TFLs.
+    -   We will start with a simple example of a Table 1 descriptive table of categorical and continuous values across treatment groups.
+3.  Using `pharmaRTF` and `huxtable`
+    -   Introduce the `pharmaRTF` and `huxtable` packages.
+    -   Explain how these packages can be used to create TFLs from the ARD model.
+    -   Provide a simple example of generating a Table 1 using these package using variables from the ARD model. Do not include a header or change and variable names, just create a simple table with the values.
+4.  Features of these packages
+    -   creating a header with `group_level` categories across the top of the table
+    -   you can use dplyr to tidyr::pivot_wider() to restructure the table with group_level as the new column names
+    -   explain how to use these values to create a custom header for these statistics
+5.  titles and footnotes
+    -   explain how to add titles and footnotes to the table using `huxtable` functions
+    -   provide an example of adding a title and footnote to the Table 1 generated in the previous section
+6.  horizontal lines
+    -   sometimes we want to separate sections of the table with horizontal lines
+    -   create a horizontal line below the title that spans the entire table
+    -   create a horizontal line that spans each group level only
+    -   create a horizontal line that is above the footnote.
